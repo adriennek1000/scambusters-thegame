@@ -1,0 +1,1953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE BOYS: SCAMBUSTERS — Call Center Arcade</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Press+Start+2P&family=Rajdhani:wght@600;700&display=swap');
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+  }
+
+  body {
+    background-color: #090d0a;
+    background-image:
+      radial-gradient(circle at 50% 30%, rgba(16, 185, 129, 0.14) 0%, transparent 60%),
+      repeating-linear-gradient(0deg, rgba(0, 255, 102, 0.03) 0px, rgba(0, 255, 102, 0.03) 1px, transparent 1px, transparent 32px),
+      repeating-linear-gradient(90deg, rgba(0, 255, 102, 0.03) 0px, rgba(0, 255, 102, 0.03) 1px, transparent 1px, transparent 32px);
+    color: #f8fafc;
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  #cabinet {
+    position: relative;
+    width: 1024px;
+    max-width: 98vw;
+    background: #111814;
+    border: 4px solid #26382d;
+    border-radius: 16px;
+    box-shadow: 0 0 50px rgba(0, 255, 102, 0.18), inset 0 0 30px rgba(0, 0, 0, 0.85);
+    overflow: hidden;
+  }
+
+  #top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background: linear-gradient(90deg, #0b140e, #15291d, #0b140e);
+    border-bottom: 2px solid #24402e;
+  }
+
+  .title-badge {
+    font-family: 'Bangers', cursive;
+    font-size: 26px;
+    letter-spacing: 2px;
+    color: #fff;
+    text-shadow: 2px 2px 0 #000, 0 0 12px #22c55e;
+  }
+
+  .title-badge span {
+    color: #4ade80;
+  }
+
+  .controls-hint {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: #94a3b8;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+  }
+
+  .key-cap {
+    background: #1e293b;
+    border: 1px solid #475569;
+    border-bottom-width: 3px;
+    border-radius: 4px;
+    padding: 3px 6px;
+    color: #4ade80;
+  }
+
+  #mute-btn {
+    background: #1e293b;
+    border: 1px solid #4ade80;
+    color: #4ade80;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  #mute-btn:hover {
+    background: #4ade80;
+    color: #052e16;
+  }
+
+  #game-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #0d1310;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .scanlines {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.22) 50%);
+    background-size: 100% 4px;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  .overlay-screen {
+    position: absolute;
+    inset: 0;
+    background: rgba(7, 13, 9, 0.91);
+    backdrop-filter: blur(4px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 26px;
+    z-index: 10;
+  }
+
+  .hidden {
+    display: none !important;
+  }
+
+  .select-header {
+    text-align: center;
+  }
+
+  .select-header h1 {
+    font-family: 'Bangers', cursive;
+    font-size: 46px;
+    letter-spacing: 3px;
+    color: #ffffff;
+    text-shadow: 3px 3px 0 #000, 0 0 20px #22c55e;
+    line-height: 1;
+  }
+
+  .select-header h1 .green {
+    color: #4ade80;
+  }
+
+  .select-header p {
+    font-size: 15px;
+    color: #a7f3d0;
+    margin-top: 4px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  #roster-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    width: 100%;
+    max-width: 920px;
+  }
+
+  .hero-card {
+    background: linear-gradient(180deg, #16241b 0%, #0e1711 100%);
+    border: 2px solid #294232;
+    border-radius: 10px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.14s, border-color 0.14s, box-shadow 0.14s;
+    position: relative;
+  }
+
+  .hero-card:hover, .hero-card.selected {
+    transform: translateY(-4px) scale(1.03);
+    border-color: #4ade80;
+    box-shadow: 0 0 18px rgba(74, 222, 128, 0.45);
+    background: linear-gradient(180deg, #1d3526 0%, #112117 100%);
+  }
+
+  .hero-card.selected::after {
+    content: "READY";
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: #4ade80;
+    color: #052e16;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    padding: 3px 5px;
+    border-radius: 4px;
+  }
+
+  .hero-card canvas {
+    width: 78px;
+    height: 78px;
+    border-radius: 8px;
+    background: #0a120d;
+    border: 1px solid #2d4a37;
+    margin-bottom: 5px;
+  }
+
+  .hero-name {
+    font-family: 'Bangers', cursive;
+    font-size: 18px;
+    letter-spacing: 1px;
+    color: #f8fafc;
+    text-align: center;
+  }
+
+  .hero-role {
+    font-size: 11px;
+    color: #4ade80;
+    font-weight: 700;
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  #hero-preview-bar {
+    width: 100%;
+    max-width: 920px;
+    background: #122017;
+    border: 2px solid #2c4a36;
+    border-radius: 10px;
+    padding: 10px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .preview-info {
+    flex: 1;
+  }
+
+  .preview-title {
+    font-family: 'Bangers', cursive;
+    font-size: 24px;
+    color: #4ade80;
+    letter-spacing: 1.5px;
+  }
+
+  .preview-desc {
+    font-size: 14px;
+    color: #cbd5e1;
+  }
+
+  .stat-bars {
+    display: flex;
+    gap: 14px;
+    margin-top: 6px;
+  }
+
+  .stat-item {
+    font-size: 12px;
+    font-weight: 700;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .stat-pips {
+    display: flex;
+    gap: 3px;
+  }
+
+  .pip {
+    width: 12px;
+    height: 8px;
+    background: #1e293b;
+    border-radius: 2px;
+  }
+
+  .pip.active {
+    background: #4ade80;
+    box-shadow: 0 0 6px #4ade80;
+  }
+
+  .arcade-btn {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 13px;
+    padding: 14px 22px;
+    background: linear-gradient(180deg, #4ade80 0%, #16a34a 100%);
+    color: #04210f;
+    border: none;
+    border-bottom: 4px solid #14532d;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 0 20px rgba(74, 222, 128, 0.5);
+    transition: transform 0.1s, filter 0.1s;
+    white-space: nowrap;
+  }
+
+  .arcade-btn:hover {
+    filter: brightness(1.1);
+    transform: translateY(-2px);
+  }
+
+  .arcade-btn:active {
+    transform: translateY(2px);
+    border-bottom-width: 2px;
+  }
+
+  #gameover-screen {
+    justify-content: center;
+    gap: 18px;
+    text-align: center;
+  }
+
+  #gameover-title {
+    font-family: 'Bangers', cursive;
+    font-size: 62px;
+    letter-spacing: 3px;
+    color: #ef4444;
+    text-shadow: 4px 4px 0 #000, 0 0 24px rgba(239, 68, 68, 0.7);
+  }
+
+  .stats-box {
+    background: #132218;
+    border: 2px solid #2e4e39;
+    border-radius: 12px;
+    padding: 18px 34px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .stat-num {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 20px;
+    color: #4ade80;
+    margin-top: 6px;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 16px;
+  }
+</style>
+</head>
+<body>
+
+<div id="cabinet">
+  <div id="top-bar">
+    <div class="title-badge">THE BOYS: <span>SCAMBUSTERS</span></div>
+    <div class="controls-hint">
+      <span><span class="key-cap">WASD/ARROWS</span> MOVE</span>
+      <span><span class="key-cap">J / Z / SPACE</span> SMASH</span>
+      <span><span class="key-cap">K / X / SHIFT</span> ULTIMATE</span>
+      <span><span class="key-cap">H</span> SWAP HERO</span>
+    </div>
+    <button id="mute-btn">SFX: ON</button>
+  </div>
+
+  <div id="game-container">
+    <canvas id="gameCanvas" width="1024" height="576"></canvas>
+    <div class="scanlines"></div>
+
+    <!-- CHARACTER SELECT SCREEN -->
+    <div id="select-screen" class="overlay-screen">
+      <div class="select-header">
+        <h1>CHOOSE YOUR <span class="green">SCAMBUSTER</span></h1>
+        <p>Raid the shady call center • Smash scammer headsets • Save grandma's gift cards!</p>
+      </div>
+
+      <div id="roster-grid"></div>
+
+      <div id="hero-preview-bar">
+        <div class="preview-info">
+          <div class="preview-title" id="prev-name">THE GRIM REAPER</div>
+          <div class="preview-desc" id="prev-desc">Ghost Skeleton Overlord • Ultimate: SOUL REAP (Giant spectral scythe wave)</div>
+          <div class="stat-bars" id="prev-stats"></div>
+        </div>
+        <button class="arcade-btn" id="start-btn">RAID CALL CENTER ▶</button>
+      </div>
+    </div>
+
+    <!-- GAME OVER / VICTORY SCREEN -->
+    <div id="gameover-screen" class="overlay-screen hidden">
+      <div id="gameover-title">CALL CENTER SHUT DOWN!</div>
+      <p id="gameover-sub" style="font-size: 18px; color: #cbd5e1;">You disconnected the scam syndicate!</p>
+      <div class="stats-box">
+        <div>
+          <div style="font-size:13px; color:#94a3b8; font-weight:700;">SCAMMERS BUSTED</div>
+          <div class="stat-num" id="final-kills">0</div>
+        </div>
+        <div>
+          <div style="font-size:13px; color:#94a3b8; font-weight:700;">CASH RECOVERED</div>
+          <div class="stat-num" id="final-score">$0</div>
+        </div>
+        <div>
+          <div style="font-size:13px; color:#94a3b8; font-weight:700;">HIGH SCORE</div>
+          <div class="stat-num" id="final-best">$0</div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="arcade-btn" id="replay-btn">PLAY AGAIN ↻</button>
+        <button class="arcade-btn" id="change-hero-btn" style="background: linear-gradient(180deg, #38bdf8, #0284c7); border-bottom-color: #0c4a6e;">CHANGE HERO</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================================
+// RETRO WEB AUDIO SYNTHESIZER (Zero external assets needed!)
+// ============================================================================
+class SoundFX {
+  constructor() {
+    this.ctx = null;
+    this.muted = false;
+  }
+  init() {
+    if (!this.ctx) {
+      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+  }
+  playTone(freq, type, duration, vol = 0.15, slideTo = null) {
+    if (this.muted) return;
+    this.init();
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+    if (slideTo) {
+      osc.frequency.exponentialRampToValueAtTime(slideTo, this.ctx.currentTime + duration);
+    }
+    gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start();
+    osc.stop(this.ctx.currentTime + duration);
+  }
+  punch() {
+    this.playTone(170, 'square', 0.11, 0.16, 55);
+  }
+  hit() {
+    this.playTone(260, 'sawtooth', 0.14, 0.18, 70);
+  }
+  ult() {
+    this.playTone(220, 'sawtooth', 0.35, 0.2, 880);
+    setTimeout(() => this.playTone(440, 'square', 0.3, 0.15, 110), 80);
+  }
+  ko() {
+    this.playTone(300, 'square', 0.12, 0.15, 180);
+    setTimeout(() => this.playTone(150, 'sawtooth', 0.25, 0.18, 45), 90);
+  }
+  pickup() {
+    this.playTone(580, 'sine', 0.08, 0.14, 880);
+    setTimeout(() => this.playTone(880, 'sine', 0.12, 0.14, 1180), 70);
+  }
+  hurt() {
+    this.playTone(130, 'sawtooth', 0.22, 0.2, 48);
+  }
+  select() {
+    this.playTone(520, 'square', 0.07, 0.1, 780);
+  }
+}
+const sfx = new SoundFX();
+
+document.getElementById('mute-btn').addEventListener('click', () => {
+  sfx.muted = !sfx.muted;
+  document.getElementById('mute-btn').textContent = sfx.muted ? 'SFX: OFF' : 'SFX: ON';
+});
+
+// ============================================================================
+// ALL 10 HEROES FROM THE LINEUP (Including Ghost Skeleton Grim Reaper!)
+// ============================================================================
+const HEROES = [
+  {
+    id: 'reaper',
+    name: 'THE GRIM REAPER',
+    role: 'Spectral Overlord',
+    desc: 'Ghost Skeleton with green flame eyes & giant scythe • Ult: SOUL REAP',
+    power: 5, speed: 4, tech: 4,
+    hp: 130, moveSpeed: 245, damage: 34, range: 95,
+    ultName: 'SOUL REAP!',
+    ultColor: '#4ade80',
+    weapon: 'scythe'
+  },
+  {
+    id: 'techguy',
+    name: 'THE TECH CHIEF',
+    role: 'Cyber Hacker',
+    desc: 'Man-bun, glasses, cigar & circuit shirt • Ult: DDOS SMOKE CLOUD',
+    power: 3, speed: 4, tech: 5,
+    hp: 115, moveSpeed: 240, damage: 26, range: 76,
+    ultName: 'DDOS OVERLOAD!',
+    ultColor: '#38bdf8',
+    weapon: 'keyboard'
+  },
+  {
+    id: 'king',
+    name: 'THE MONARCH',
+    role: 'Royal Enforcer',
+    desc: 'Ruby crown, ermine cape & golden scepter • Ult: ROYAL DECREE',
+    power: 5, speed: 3, tech: 3,
+    hp: 140, moveSpeed: 205, damage: 36, range: 86,
+    ultName: 'ROYAL DECREE!',
+    ultColor: '#facc15',
+    weapon: 'scepter'
+  },
+  {
+    id: 'redhead',
+    name: 'REDHEAD REBEL',
+    role: 'Twin-Tail Brawler',
+    desc: 'Fiery twin-tails & vintage crimson dress • Ult: SONIC SCREAM',
+    power: 3, speed: 5, tech: 4,
+    hp: 105, moveSpeed: 285, damage: 24, range: 72,
+    ultName: 'LINE DISCONNECT!',
+    ultColor: '#f43f5e',
+    weapon: 'mic'
+  },
+  {
+    id: 'striker',
+    name: 'THE STRIKER',
+    role: 'Swift Vigilante',
+    desc: 'Crisp white tee & lightning-fast combos • Ult: RAPID TAKEDOWN',
+    power: 4, speed: 5, tech: 3,
+    hp: 115, moveSpeed: 275, damage: 28, range: 74,
+    ultName: 'BLITZ COMBO!',
+    ultColor: '#a855f7',
+    weapon: 'fists'
+  },
+  {
+    id: 'capguy',
+    name: 'THE CAP RANGER',
+    role: 'Tactical Marksman',
+    desc: 'Orange X-cap, goatee & olive jacket • Ult: X-BOOMERANG CAP',
+    power: 4, speed: 4, tech: 4,
+    hp: 120, moveSpeed: 245, damage: 28, range: 78,
+    ultName: 'X-CAP RANG!',
+    ultColor: '#fb923c',
+    weapon: 'cap'
+  },
+  {
+    id: 'potato',
+    name: 'SGT. SPUD',
+    role: 'Angry Tuber Tank',
+    desc: 'Furious potato in a blue & white knit beanie • Ult: HOT POTATO SLAM',
+    power: 5, speed: 3, tech: 2,
+    hp: 155, moveSpeed: 215, damage: 35, range: 74,
+    ultName: 'MASHED SCAMMERS!',
+    ultColor: '#eab308',
+    weapon: 'spud'
+  },
+  {
+    id: 'silverfox',
+    name: 'THE SILVER FOX',
+    role: 'Cool Veteran',
+    desc: 'Silver hair, white shades & thick beard • Ult: ICE COLD FREEZE',
+    power: 4, speed: 3, tech: 5,
+    hp: 125, moveSpeed: 225, damage: 30, range: 78,
+    ultName: 'ACCOUNT FROZEN!',
+    ultColor: '#67e8f9',
+    weapon: 'briefcase'
+  },
+  {
+    id: 'hitman',
+    name: 'THE HITMAN',
+    role: 'Desk Assassin',
+    desc: 'Long dark hair, goatee & navy button-up • Ult: PENCIL FURY',
+    power: 4, speed: 5, tech: 4,
+    hp: 115, moveSpeed: 265, damage: 31, range: 80,
+    ultName: 'BABA YAGA CALL!',
+    ultColor: '#818cf8',
+    weapon: 'baton'
+  },
+  {
+    id: 'strongman',
+    name: 'MUSTACHE TITAN',
+    role: 'Heavy Bruiser',
+    desc: 'Handlebar mustache, tank top & red suspenders • Ult: SERVER SUPLEX',
+    power: 5, speed: 3, tech: 2,
+    hp: 160, moveSpeed: 205, damage: 38, range: 82,
+    ultName: 'SERVER SMASH!',
+    ultColor: '#ef4444',
+    weapon: 'fists'
+  }
+];
+
+// ============================================================================
+// CUSTOM VECTOR PORTRAIT & SPRITE RENDERER FOR EVERY CHARACTER
+// ============================================================================
+function drawHeroCharacter(ctx, heroId, x, y, scale = 1, facing = 1, animTime = 0, attacking = false, isPortrait = false) {
+  ctx.save();
+  ctx.translate(x, y);
+  if (!isPortrait) {
+    ctx.scale(scale * facing, scale);
+  } else {
+    ctx.scale(scale, scale);
+  }
+
+  const bob = isPortrait ? 0 : Math.sin(animTime * 10) * 2.5;
+  const punchOffset = attacking ? 14 : 0;
+
+  // Shadow (only in gameplay)
+  if (!isPortrait) {
+    ctx.fillStyle = 'rgba(0,0,0,0.45)';
+    ctx.beginPath();
+    ctx.ellipse(0, 34, 22, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = '#090d0a';
+
+  if (heroId === 'reaper') {
+    // GHOST SKELETON GRIM REAPER IN THE BACK
+    const floatY = isPortrait ? 0 : Math.sin(animTime * 5) * 4;
+    ctx.translate(0, floatY);
+
+    // Green spectral aura
+    const grad = ctx.createRadialGradient(0, -10, 5, 0, -10, 42);
+    grad.addColorStop(0, 'rgba(74, 222, 128, 0.55)');
+    grad.addColorStop(1, 'rgba(74, 222, 128, 0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(0, -10, 42, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Giant Scythe behind/side
+    ctx.save();
+    if (attacking) ctx.rotate(0.75);
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(-16, 32);
+    ctx.lineTo(18, -36);
+    ctx.stroke();
+    // Crescent blade
+    ctx.fillStyle = '#94a3b8';
+    ctx.beginPath();
+    ctx.moveTo(18, -36);
+    ctx.quadraticCurveTo(-18, -48, -32, -22);
+    ctx.quadraticCurveTo(-10, -34, 16, -28);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#4ade80';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.restore();
+
+    // Tattered dark green-black cloak
+    ctx.fillStyle = '#143322';
+    ctx.strokeStyle = '#05140b';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-22, 28);
+    ctx.lineTo(-18, -12);
+    ctx.quadraticCurveTo(0, -36, 18, -12);
+    ctx.lineTo(22, 28);
+    ctx.lineTo(10, 22);
+    ctx.lineTo(0, 30);
+    ctx.lineTo(-10, 22);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Hood shadow
+    ctx.fillStyle = '#06120b';
+    ctx.beginPath();
+    ctx.ellipse(0, -12, 13, 15, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Skull
+    ctx.fillStyle = '#cbd5e1';
+    ctx.beginPath();
+    ctx.arc(0, -14, 10, Math.PI, 0);
+    ctx.lineTo(8, -4);
+    ctx.lineTo(5, 2);
+    ctx.lineTo(-5, 2);
+    ctx.lineTo(-8, -4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Glowing Green Flame Eyes
+    ctx.fillStyle = '#4ade80';
+    ctx.shadowColor = '#22c55e';
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.arc(-4, -13, 2.8, 0, Math.PI * 2);
+    ctx.arc(4, -13, 2.8, 0, Math.PI * 2);
+    ctx.fill();
+    // Green wisps rising from eyes
+    ctx.beginPath();
+    ctx.moveTo(-6, -14); ctx.lineTo(-10, -23); ctx.lineTo(-3, -16);
+    ctx.moveTo(6, -14); ctx.lineTo(10, -23); ctx.lineTo(3, -16);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Teeth
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(-3, -2); ctx.lineTo(-3, 2);
+    ctx.moveTo(0, -2); ctx.lineTo(0, 2);
+    ctx.moveTo(3, -2); ctx.lineTo(3, 2);
+    ctx.stroke();
+
+  } else if (heroId === 'potato') {
+    // SGT. SPUD (Angry Potato in Blue/White Beanie)
+    ctx.translate(0, bob);
+    // Legs
+    if (!isPortrait) {
+      ctx.fillStyle = '#92400e';
+      ctx.fillRect(-10, 20, 6, 12);
+      ctx.fillRect(4, 20, 6, 12);
+    }
+    // Potato body
+    ctx.fillStyle = '#b47b38';
+    ctx.beginPath();
+    ctx.ellipse(0, 2, 18, 24, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Potato speckles
+    ctx.fillStyle = '#784b18';
+    ctx.beginPath();
+    ctx.arc(-9, 10, 1.5, 0, Math.PI * 2);
+    ctx.arc(10, 6, 1.8, 0, Math.PI * 2);
+    ctx.arc(-6, 17, 1.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Blue & White Knit Beanie
+    ctx.fillStyle = '#1d4ed8';
+    ctx.beginPath();
+    ctx.arc(0, -14, 16, Math.PI, 0);
+    ctx.fill();
+    ctx.stroke();
+    // White stripe
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect(-15, -16, 30, 4);
+    ctx.strokeRect(-15, -16, 30, 4);
+    // Pom-pom
+    ctx.fillStyle = '#2563eb';
+    ctx.beginPath();
+    ctx.arc(0, -31, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Big Googly Angry Eyes
+    ctx.fillStyle = '#fef9c3';
+    ctx.beginPath();
+    ctx.arc(-5, -5, 5.5, 0, Math.PI * 2);
+    ctx.arc(5, -5, 5.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    // Pupils
+    ctx.fillStyle = '#090d0a';
+    ctx.beginPath();
+    ctx.arc(-4, -5, 1.8, 0, Math.PI * 2);
+    ctx.arc(4, -5, 1.8, 0, Math.PI * 2);
+    ctx.fill();
+    // Angry V eyebrows
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(-11, -11); ctx.lineTo(-1, -7);
+    ctx.moveTo(11, -11); ctx.lineTo(1, -7);
+    ctx.stroke();
+    ctx.lineWidth = 2;
+
+    // Frown
+    ctx.beginPath();
+    ctx.arc(0, 6, 4, Math.PI * 1.15, Math.PI * 1.85);
+    ctx.stroke();
+
+    // Stubby potato arms
+    ctx.fillStyle = '#b47b38';
+    ctx.beginPath();
+    ctx.arc(-18, 5, 5, 0, Math.PI * 2);
+    ctx.arc(18 + punchOffset * 0.6, 5, 5.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+  } else {
+    // HUMANOID HEROES BASE + CUSTOM FEATURES
+    ctx.translate(0, bob);
+
+    // Legs (gameplay)
+    if (!isPortrait) {
+      ctx.fillStyle = '#1e293b';
+      const walk = Math.sin(animTime * 12) * 4;
+      ctx.fillRect(-10, 14, 7, 18 + walk * 0.4);
+      ctx.fillRect(3, 14, 7, 18 - walk * 0.4);
+    }
+
+    // Torso Colors
+    let torsoColor = '#1e3a8a';
+    if (heroId === 'king') torsoColor = '#991b1b';
+    if (heroId === 'redhead') torsoColor = '#b91c1c';
+    if (heroId === 'striker') torsoColor = '#f8fafc';
+    if (heroId === 'capguy') torsoColor = '#3f6212';
+    if (heroId === 'silverfox') torsoColor = '#334155';
+    if (heroId === 'hitman') torsoColor = '#1e3a5f';
+    if (heroId === 'strongman') torsoColor = '#e7d5c0';
+
+    ctx.fillStyle = torsoColor;
+    ctx.beginPath();
+    ctx.roundRect(-14, -4, 28, 22, 5);
+    ctx.fill();
+    ctx.stroke();
+
+    // Torso Details
+    if (heroId === 'techguy') {
+      // Circuit lines
+      ctx.strokeStyle = '#60a5fa';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(-8, 2); ctx.lineTo(-2, 8); ctx.lineTo(6, 8);
+      ctx.stroke();
+      ctx.strokeStyle = '#090d0a';
+      ctx.lineWidth = 2;
+    } else if (heroId === 'king') {
+      // Ermine white & black spotted cape collar
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(-16, -4, 32, 8);
+      ctx.strokeRect(-16, -4, 32, 8);
+      ctx.fillStyle = '#090d0a';
+      ctx.fillRect(-10, -2, 2, 3);
+      ctx.fillRect(0, -2, 2, 3);
+      ctx.fillRect(9, -2, 2, 3);
+    } else if (heroId === 'strongman') {
+      // Red suspenders
+      ctx.fillStyle = '#dc2626';
+      ctx.fillRect(-10, -4, 4, 22);
+      ctx.fillRect(6, -4, 4, 22);
+    }
+
+    // Skin tone
+    let skin = '#f1c29b';
+    if (heroId === 'striker') skin = '#5c3824';
+    if (heroId === 'strongman') skin = '#d99b72';
+
+    // Head
+    ctx.fillStyle = skin;
+    ctx.beginPath();
+    ctx.arc(0, -16, 12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Eyes
+    ctx.fillStyle = '#090d0a';
+    ctx.beginPath();
+    ctx.arc(-4, -17, 1.6, 0, Math.PI * 2);
+    ctx.arc(4, -17, 1.6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Character-Specific Hair, Hats, Beards & Props
+    if (heroId === 'techguy') {
+      // Man-bun + hair
+      ctx.fillStyle = '#291d18';
+      ctx.beginPath();
+      ctx.arc(0, -29, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, -18, 12, Math.PI, 0);
+      ctx.fill();
+      // Full beard
+      ctx.beginPath();
+      ctx.arc(0, -13, 11, 0.1 * Math.PI, 0.9 * Math.PI);
+      ctx.fill();
+      // Glasses
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(-9, -20, 7, 5);
+      ctx.strokeRect(2, -20, 7, 5);
+      // Cigar
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(5, -11, 11, 3.5);
+      ctx.fillStyle = '#f97316';
+      ctx.fillRect(15, -11, 2.5, 3.5);
+
+    } else if (heroId === 'king') {
+      // White hair
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillRect(-13, -20, 4, 9);
+      ctx.fillRect(9, -20, 4, 9);
+      // Royal Gold & Ruby Crown
+      ctx.fillStyle = '#eab308';
+      ctx.beginPath();
+      ctx.moveTo(-12, -24);
+      ctx.lineTo(-14, -34);
+      ctx.lineTo(-6, -29);
+      ctx.lineTo(0, -36);
+      ctx.lineTo(6, -29);
+      ctx.lineTo(14, -34);
+      ctx.lineTo(12, -24);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#dc2626';
+      ctx.beginPath();
+      ctx.arc(0, -28, 3, 0, Math.PI * 2);
+      ctx.fill();
+      // Golden Scepter
+      ctx.strokeStyle = '#eab308';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(16 + punchOffset * 0.5, 16);
+      ctx.lineTo(18 + punchOffset, -16);
+      ctx.stroke();
+      ctx.fillStyle = '#dc2626';
+      ctx.beginPath();
+      ctx.arc(18 + punchOffset, -18, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#090d0a';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+    } else if (heroId === 'redhead') {
+      // Red twin-tails
+      ctx.fillStyle = '#dc2626';
+      ctx.beginPath();
+      ctx.ellipse(-15, -10, 5, 13, 0.25, 0, Math.PI * 2);
+      ctx.ellipse(15, -10, 5, 13, -0.25, 0, Math.PI * 2);
+      ctx.arc(0, -18, 12.5, Math.PI, 0);
+      ctx.fill();
+      ctx.stroke();
+      // Blue ribbons
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(-14, -22, 4, 4);
+      ctx.fillRect(10, -22, 4, 4);
+
+    } else if (heroId === 'striker') {
+      // Short black fade & goatee
+      ctx.fillStyle = '#111827';
+      ctx.beginPath();
+      ctx.arc(0, -18, 12, Math.PI, 0);
+      ctx.fill();
+      ctx.fillRect(-3, -9, 6, 3);
+
+    } else if (heroId === 'capguy') {
+      // Orange X Cap
+      ctx.fillStyle = '#ea580c';
+      ctx.beginPath();
+      ctx.arc(0, -19, 12.5, Math.PI, 0);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillRect(-4, -21, 18, 3.5);
+      // X mark
+      ctx.strokeStyle = '#090d0a';
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.moveTo(-2, -28); ctx.lineTo(2, -24);
+      ctx.moveTo(2, -28); ctx.lineTo(-2, -24);
+      ctx.stroke();
+      // Light beard
+      ctx.fillStyle = '#b45309';
+      ctx.fillRect(-5, -10, 10, 4);
+
+    } else if (heroId === 'silverfox') {
+      // Silver hair & full silver beard
+      ctx.fillStyle = '#f1f5f9';
+      ctx.beginPath();
+      ctx.arc(0, -19, 13, Math.PI, 0);
+      ctx.fill();
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, -13, 11.5, 0.05 * Math.PI, 0.95 * Math.PI);
+      ctx.fill();
+      ctx.stroke();
+      // White-framed sunglasses
+      ctx.fillStyle = '#090d0a';
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.fillRect(-9, -20, 8, 5);
+      ctx.strokeRect(-9, -20, 8, 5);
+      ctx.fillRect(1, -20, 8, 5);
+      ctx.strokeRect(1, -20, 8, 5);
+      ctx.strokeStyle = '#090d0a';
+
+    } else if (heroId === 'hitman') {
+      // Long dark hair + goatee
+      ctx.fillStyle = '#18181b';
+      ctx.beginPath();
+      ctx.arc(0, -18, 12.5, Math.PI, 0);
+      ctx.lineTo(13, 0);
+      ctx.lineTo(9, 0);
+      ctx.lineTo(9, -14);
+      ctx.lineTo(-9, -14);
+      ctx.lineTo(-9, 0);
+      ctx.lineTo(-13, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillRect(-4, -10, 8, 5);
+
+    } else if (heroId === 'strongman') {
+      // Dark hair + thick handlebar mustache
+      ctx.fillStyle = '#1c1917';
+      ctx.beginPath();
+      ctx.arc(0, -19, 12, Math.PI, 0);
+      ctx.fill();
+      // Handlebar mustache
+      ctx.beginPath();
+      ctx.moveTo(-8, -11);
+      ctx.quadraticCurveTo(0, -15, 8, -11);
+      ctx.lineTo(9, -8);
+      ctx.quadraticCurveTo(0, -11, -9, -8);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // Punching Fist
+    ctx.fillStyle = skin;
+    ctx.strokeStyle = '#090d0a';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(14 + punchOffset, 4, 5.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+// ============================================================================
+// POPULATE HERO SELECT ROSTER CARDS
+// ============================================================================
+let selectedHeroIndex = 0;
+const rosterGrid = document.getElementById('roster-grid');
+
+function updatePreviewBar() {
+  const hero = HEROES[selectedHeroIndex];
+  document.getElementById('prev-name').textContent = hero.name;
+  document.getElementById('prev-desc').textContent = hero.desc;
+
+  const statsContainer = document.getElementById('prev-stats');
+  statsContainer.innerHTML = '';
+  const stats = [
+    { label: 'POWER', val: hero.power },
+    { label: 'SPEED', val: hero.speed },
+    { label: 'TECH', val: hero.tech }
+  ];
+  stats.forEach(s => {
+    const item = document.createElement('div');
+    item.className = 'stat-item';
+    let pips = '';
+    for (let i = 1; i <= 5; i++) {
+      pips += `<div class="pip ${i <= s.val ? 'active' : ''}"></div>`;
+    }
+    item.innerHTML = `<span>${s.label}</span><div class="stat-pips">${pips}</div>`;
+    statsContainer.appendChild(item);
+  });
+
+  document.querySelectorAll('.hero-card').forEach((card, idx) => {
+    card.classList.toggle('selected', idx === selectedHeroIndex);
+  });
+}
+
+HEROES.forEach((hero, index) => {
+  const card = document.createElement('div');
+  card.className = 'hero-card' + (index === 0 ? ' selected' : '');
+
+  const portrait = document.createElement('canvas');
+  portrait.width = 96;
+  portrait.height = 96;
+  const pCtx = portrait.getContext('2d');
+  drawHeroCharacter(pCtx, hero.id, 48, 58, 1.35, 1, 0, false, true);
+
+  const nameEl = document.createElement('div');
+  nameEl.className = 'hero-name';
+  nameEl.textContent = hero.name;
+
+  const roleEl = document.createElement('div');
+  roleEl.className = 'hero-role';
+  roleEl.textContent = hero.role;
+
+  card.appendChild(portrait);
+  card.appendChild(nameEl);
+  card.appendChild(roleEl);
+
+  card.addEventListener('click', () => {
+    sfx.select();
+    selectedHeroIndex = index;
+    updatePreviewBar();
+  });
+
+  rosterGrid.appendChild(card);
+});
+updatePreviewBar();
+
+// ============================================================================
+// CORE GAME ENGINE — CALL CENTER BEAT 'EM UP
+// ============================================================================
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+const ARENA = {
+  top: 215,
+  bottom: 535,
+  left: 45,
+  right: 979
+};
+
+const SCAM_CALLOUTS = [
+  "DO NOT REDEEM!",
+  "NO GIFT CARDS!",
+  "CALL BLOCKED!",
+  "SCAM DENIED!",
+  "DISCONNECTED!",
+  "TRACE COMPLETE!",
+  "IRS FAKEOUT!",
+  "EXTENDED WARRANTY VOID!"
+];
+
+let gameState = 'SELECT'; // SELECT, PLAYING, GAMEOVER
+let score = 0;
+let bestScore = parseInt(localStorage.getItem('boys_scambusters_best') || '0', 10);
+let kills = 0;
+let wave = 1;
+let waveBannerTimer = 0;
+let screenShake = 0;
+let hitStop = 0;
+
+let player = null;
+let enemies = [];
+let desks = [];
+let pickups = [];
+let projectiles = [];
+let particles = [];
+let floatingTexts = [];
+let allies = []; // Backup heroes from The Boys!
+
+const keys = {};
+window.addEventListener('keydown', (e) => {
+  keys[e.code] = true;
+  if (gameState === 'PLAYING') {
+    if (e.code === 'KeyJ' || e.code === 'KeyZ' || e.code === 'Space') {
+      e.preventDefault();
+      triggerAttack();
+    }
+    if (e.code === 'KeyK' || e.code === 'KeyX' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+      e.preventDefault();
+      triggerUltimate();
+    }
+    if (e.code === 'KeyH') {
+      swapHeroMidGame();
+    }
+  }
+});
+window.addEventListener('keyup', (e) => {
+  keys[e.code] = false;
+});
+
+function spawnFloatingText(text, x, y, color = '#4ade80', size = 20) {
+  floatingTexts.push({ text, x, y, color, size, life: 1.0, vy: -48 });
+}
+
+function spawnParticles(x, y, color, count = 12) {
+  for (let i = 0; i < count; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 60 + Math.random() * 190;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - 40,
+      size: 3 + Math.random() * 4,
+      color,
+      life: 0.45 + Math.random() * 0.35
+    });
+  }
+}
+
+function initDesks() {
+  desks = [
+    { x: 240, y: 275, w: 96, h: 36, intact: true, phoneRinging: true },
+    { x: 512, y: 275, w: 96, h: 36, intact: true, phoneRinging: false },
+    { x: 784, y: 275, w: 96, h: 36, intact: true, phoneRinging: true },
+    { x: 340, y: 420, w: 96, h: 36, intact: true, phoneRinging: false },
+    { x: 684, y: 420, w: 96, h: 36, intact: true, phoneRinging: true }
+  ];
+}
+
+function startGame() {
+  sfx.init();
+  sfx.ult();
+  const hero = HEROES[selectedHeroIndex];
+  player = {
+    heroIndex: selectedHeroIndex,
+    hero,
+    x: 180,
+    y: 370,
+    vx: 0,
+    vy: 0,
+    facing: 1,
+    hp: hero.hp,
+    maxHp: hero.hp,
+    ultCharge: 50,
+    attackTimer: 0,
+    attackCooldown: 0,
+    invulnTimer: 0,
+    animTime: 0
+  };
+
+  score = 0;
+  kills = 0;
+  wave = 1;
+  enemies = [];
+  pickups = [];
+  projectiles = [];
+  particles = [];
+  floatingTexts = [];
+  allies = [];
+
+  initDesks();
+  spawnWave(wave);
+
+  document.getElementById('select-screen').classList.add('hidden');
+  document.getElementById('gameover-screen').classList.add('hidden');
+  gameState = 'PLAYING';
+}
+
+function swapHeroMidGame() {
+  selectedHeroIndex = (selectedHeroIndex + 1) % HEROES.length;
+  const newHero = HEROES[selectedHeroIndex];
+  const hpRatio = player.hp / player.maxHp;
+  player.heroIndex = selectedHeroIndex;
+  player.hero = newHero;
+  player.maxHp = newHero.hp;
+  player.hp = Math.max(20, Math.round(newHero.hp * hpRatio));
+  sfx.select();
+  spawnParticles(player.x, player.y, '#4ade80', 18);
+  spawnFloatingText(`TAG IN: ${newHero.name}!`, player.x, player.y - 45, '#4ade80', 22);
+}
+
+function spawnWave(waveNum) {
+  waveBannerTimer = 2.4;
+  // Repair a couple desks on new wave
+  desks.forEach((d, idx) => {
+    if (!d.intact && Math.random() < 0.65) {
+      d.intact = true;
+      d.phoneRinging = idx % 2 === 0;
+    }
+  });
+
+  const count = 4 + waveNum * 2;
+  for (let i = 0; i < count; i++) {
+    const side = Math.random() < 0.5 ? -1 : 1;
+    const spawnX = side === -1 ? -30 - i * 45 : canvas.width + 30 + i * 45;
+    const spawnY = ARENA.top + 25 + Math.random() * (ARENA.bottom - ARENA.top - 50);
+
+    let type = 'telemarketer';
+    if (waveNum >= 2 && i % 3 === 1) type = 'techscammer';
+    if (waveNum >= 3 && i === count - 1) type = 'kingpin';
+
+    const stats = {
+      telemarketer: { label: 'SCRIPT SCAMMER', hp: 48 + waveNum * 8, speed: 105 + waveNum * 5, dmg: 9, color: '#f97316', tie: '#ef4444', reward: 150 },
+      techscammer:  { label: 'FAKE IT SUPPORT', hp: 65 + waveNum * 10, speed: 130 + waveNum * 6, dmg: 12, color: '#38bdf8', tie: '#eab308', reward: 250 },
+      kingpin:      { label: 'CALL CENTER BOSS', hp: 165 + waveNum * 25, speed: 92 + waveNum * 4, dmg: 18, color: '#a855f7', tie: '#facc15', reward: 600 }
+    }[type];
+
+    enemies.push({
+      type,
+      ...stats,
+      maxHp: stats.hp,
+      x: spawnX,
+      y: spawnY,
+      facing: side === -1 ? 1 : -1,
+      state: 'chase',
+      attackCooldown: 0.8 + Math.random(),
+      stunTimer: 0,
+      hurtTimer: 0,
+      animTime: Math.random() * 5
+    });
+  }
+}
+
+function triggerAttack() {
+  if (player.attackCooldown > 0) return;
+  player.attackTimer = 0.22;
+  player.attackCooldown = 0.28;
+  sfx.punch();
+
+  const h = player.hero;
+  const hitX = player.x + player.facing * (h.range * 0.65);
+  const hitY = player.y;
+  let connected = false;
+
+  // Hit enemies
+  enemies.forEach(en => {
+    const dx = Math.abs(en.x - hitX);
+    const dy = Math.abs(en.y - hitY);
+    if (dx <= h.range * 0.72 && dy <= 34) {
+      connected = true;
+      en.hp -= h.damage;
+      en.hurtTimer = 0.16;
+      en.stunTimer = 0.28;
+      en.x += player.facing * 22;
+      player.ultCharge = Math.min(100, player.ultCharge + 14);
+      spawnParticles(en.x, en.y - 10, '#facc15', 10);
+
+      if (en.hp <= 0) {
+        handleEnemyKO(en);
+      } else {
+        spawnFloatingText(`-${h.damage}`, en.x, en.y - 36, '#ffffff', 18);
+      }
+    }
+  });
+
+  // Smash ringing call center desks!
+  desks.forEach(d => {
+    if (!d.intact) return;
+    if (Math.abs(d.x - hitX) < 62 && Math.abs(d.y - hitY) < 34) {
+      d.intact = false;
+      connected = true;
+      sfx.hit();
+      screenShake = 6;
+      spawnParticles(d.x, d.y, '#94a3b8', 16);
+      spawnFloatingText('PHONE SMASHED! +$100', d.x, d.y - 30, '#4ade80', 18);
+      score += 100;
+      if (Math.random() < 0.65) {
+        pickups.push({
+          x: d.x,
+          y: d.y,
+          kind: Math.random() < 0.55 ? 'coffee' : 'giftcard',
+          bob: 0
+        });
+      }
+    }
+  });
+
+  if (connected) {
+    sfx.hit();
+    screenShake = Math.max(screenShake, 4);
+  }
+}
+
+function triggerUltimate() {
+  if (player.ultCharge < 100) {
+    spawnFloatingText('ULT CHARGING...', player.x, player.y - 44, '#94a3b8', 15);
+    return;
+  }
+
+  player.ultCharge = 0;
+  player.attackTimer = 0.35;
+  sfx.ult();
+  screenShake = 14;
+  hitStop = 0.06;
+
+  const h = player.hero;
+  spawnFloatingText(h.ultName, player.x, player.y - 52, h.ultColor, 28);
+  spawnParticles(player.x, player.y, h.ultColor, 28);
+
+  // Launch huge signature wave across the call center
+  projectiles.push({
+    x: player.x + player.facing * 30,
+    y: player.y,
+    vx: player.facing * 520,
+    radius: 68,
+    damage: h.damage * 2.6,
+    color: h.ultColor,
+    heroId: h.id,
+    life: 1.3
+  });
+
+  // Also summon a random backup Boy to assist briefly!
+  const backupIdx = (player.heroIndex + 1 + Math.floor(Math.random() * (HEROES.length - 1))) % HEROES.length;
+  allies.push({
+    hero: HEROES[backupIdx],
+    x: player.x - player.facing * 45,
+    y: player.y + 24,
+    facing: player.facing,
+    life: 4.5,
+    attackTimer: 0
+  });
+}
+
+function handleEnemyKO(en) {
+  if (en.dead) return;
+  en.dead = true;
+  kills++;
+  score += en.reward;
+  if (score > bestScore) {
+    bestScore = score;
+    localStorage.setItem('boys_scambusters_best', bestScore);
+  }
+  sfx.ko();
+  screenShake = 8;
+  const callout = SCAM_CALLOUTS[Math.floor(Math.random() * SCAM_CALLOUTS.length)];
+  spawnFloatingText(callout, en.x, en.y - 42, '#4ade80', 21);
+  spawnParticles(en.x, en.y - 12, '#4ade80', 18);
+
+  if (Math.random() < 0.32) {
+    pickups.push({
+      x: en.x,
+      y: en.y,
+      kind: Math.random() < 0.6 ? 'giftcard' : 'coffee',
+      bob: 0
+    });
+  }
+}
+
+// ============================================================================
+// UPDATE LOOP
+// ============================================================================
+function update(dt) {
+  if (gameState !== 'PLAYING') return;
+
+  if (hitStop > 0) {
+    hitStop -= dt;
+    return;
+  }
+
+  if (screenShake > 0) screenShake = Math.max(0, screenShake - dt * 35);
+  if (waveBannerTimer > 0) waveBannerTimer -= dt;
+
+  // Passive ult trickle
+  player.ultCharge = Math.min(100, player.ultCharge + dt * 4.5);
+  if (player.attackTimer > 0) player.attackTimer -= dt;
+  if (player.attackCooldown > 0) player.attackCooldown -= dt;
+  if (player.invulnTimer > 0) player.invulnTimer -= dt;
+
+  // Player movement
+  let mx = 0, my = 0;
+  if (keys['KeyA'] || keys['ArrowLeft']) mx -= 1;
+  if (keys['KeyD'] || keys['ArrowRight']) mx += 1;
+  if (keys['KeyW'] || keys['ArrowUp']) my -= 1;
+  if (keys['KeyS'] || keys['ArrowDown']) my += 1;
+
+  if (mx !== 0 || my !== 0) {
+    const len = Math.hypot(mx, my);
+    mx /= len;
+    my /= len;
+    player.x += mx * player.hero.moveSpeed * dt;
+    player.y += my * (player.hero.moveSpeed * 0.78) * dt;
+    if (mx !== 0) player.facing = mx > 0 ? 1 : -1;
+    player.animTime += dt;
+  }
+
+  player.x = Math.max(ARENA.left, Math.min(ARENA.right, player.x));
+  player.y = Math.max(ARENA.top, Math.min(ARENA.bottom, player.y));
+
+  // Update Ultimate Projectiles
+  for (let i = projectiles.length - 1; i >= 0; i--) {
+    const p = projectiles[i];
+    p.x += p.vx * dt;
+    p.life -= dt;
+    enemies.forEach(en => {
+      if (!en.dead && Math.abs(en.x - p.x) < p.radius && Math.abs(en.y - p.y) < 55) {
+        en.hp -= p.damage * dt * 7;
+        en.hurtTimer = 0.1;
+        en.x += Math.sign(p.vx) * 140 * dt;
+        if (en.hp <= 0) handleEnemyKO(en);
+      }
+    });
+    if (p.life <= 0 || p.x < -80 || p.x > canvas.width + 80) {
+      projectiles.splice(i, 1);
+    }
+  }
+
+  // Update Backup Allies
+  for (let i = allies.length - 1; i >= 0; i--) {
+    const a = allies[i];
+    a.life -= dt;
+    const target = enemies.find(e => !e.dead);
+    if (target) {
+      const dx = target.x - a.x;
+      const dy = target.y - a.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist > 48) {
+        a.x += (dx / dist) * 210 * dt;
+        a.y += (dy / dist) * 170 * dt;
+        a.facing = dx > 0 ? 1 : -1;
+      } else if (a.attackTimer <= 0) {
+        a.attackTimer = 0.55;
+        target.hp -= 22;
+        target.hurtTimer = 0.15;
+        spawnParticles(target.x, target.y - 10, '#4ade80', 6);
+        if (target.hp <= 0) handleEnemyKO(target);
+      }
+    }
+    if (a.attackTimer > 0) a.attackTimer -= dt;
+    if (a.life <= 0) allies.splice(i, 1);
+  }
+
+  // Update Scammer Enemies
+  enemies.forEach(en => {
+    if (en.dead) return;
+    en.animTime += dt;
+    if (en.hurtTimer > 0) en.hurtTimer -= dt;
+    if (en.stunTimer > 0) {
+      en.stunTimer -= dt;
+      return;
+    }
+
+    const dx = player.x - en.x;
+    const dy = player.y - en.y;
+    const dist = Math.hypot(dx, dy);
+    en.facing = dx >= 0 ? 1 : -1;
+
+    if (dist > 46) {
+      en.x += (dx / dist) * en.speed * dt;
+      en.y += (dy / dist) * (en.speed * 0.78) * dt;
+    } else {
+      en.attackCooldown -= dt;
+      if (en.attackCooldown <= 0) {
+        en.attackCooldown = 1.15;
+        if (player.invulnTimer <= 0) {
+          player.hp -= en.dmg;
+          player.invulnTimer = 0.45;
+          sfx.hurt();
+          screenShake = 7;
+          spawnFloatingText(`-${en.dmg} SCAMMED!`, player.x, player.y - 38, '#ef4444', 18);
+          if (player.hp <= 0) {
+            player.hp = 0;
+            endGame();
+          }
+        }
+      }
+    }
+  });
+
+  enemies = enemies.filter(en => !en.dead);
+
+  // Check Wave Clear
+  if (enemies.length === 0) {
+    wave++;
+    player.hp = Math.min(player.maxHp, player.hp + 25);
+    spawnFloatingText(`FLOOR ${wave} CLEARED! +25 HP`, canvas.width / 2, 190, '#4ade80', 26);
+    spawnWave(wave);
+  }
+
+  // Update Pickups
+  for (let i = pickups.length - 1; i >= 0; i--) {
+    const pk = pickups[i];
+    pk.bob += dt * 5;
+    if (Math.hypot(player.x - pk.x, player.y - pk.y) < 42) {
+      sfx.pickup();
+      if (pk.kind === 'coffee') {
+        player.hp = Math.min(player.maxHp, player.hp + 30);
+        spawnFloatingText('ESPRESSO BOOST! +30 HP', pk.x, pk.y - 25, '#38bdf8', 18);
+      } else {
+        score += 500;
+        player.ultCharge = Math.min(100, player.ultCharge + 25);
+        spawnFloatingText('RECOVERED GIFT CARD! +$500', pk.x, pk.y - 25, '#facc15', 18);
+      }
+      pickups.splice(i, 1);
+    }
+  }
+
+  // Update Particles & Floating Texts
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const pt = particles[i];
+    pt.x += pt.vx * dt;
+    pt.y += pt.vy * dt;
+    pt.vy += 320 * dt;
+    pt.life -= dt;
+    if (pt.life <= 0) particles.splice(i, 1);
+  }
+
+  for (let i = floatingTexts.length - 1; i >= 0; i--) {
+    const ft = floatingTexts[i];
+    ft.y += ft.vy * dt;
+    ft.life -= dt;
+    if (ft.life <= 0) floatingTexts.splice(i, 1);
+  }
+}
+
+function endGame() {
+  gameState = 'GAMEOVER';
+  document.getElementById('gameover-title').textContent = 'LINE DISCONNECTED!';
+  document.getElementById('gameover-sub').textContent = `${player.hero.name} fought bravely against the call center syndicate!`;
+  document.getElementById('final-kills').textContent = kills;
+  document.getElementById('final-score').textContent = `$${score.toLocaleString()}`;
+  document.getElementById('final-best').textContent = `$${bestScore.toLocaleString()}`;
+  document.getElementById('gameover-screen').classList.remove('hidden');
+}
+
+// ============================================================================
+// RENDER LOOP — CALL CENTER BACKGROUND, DEPTH SORTING & HUD
+// ============================================================================
+function drawCallCenterBackground() {
+  // Back wall
+  const wallGrad = ctx.createLinearGradient(0, 0, 0, ARENA.top);
+  wallGrad.addColorStop(0, '#0f1c14');
+  wallGrad.addColorStop(1, '#1a2e22');
+  ctx.fillStyle = wallGrad;
+  ctx.fillRect(0, 0, canvas.width, ARENA.top);
+
+  // Wall trim & glowing green slime/neon accent
+  ctx.fillStyle = '#22c55e';
+  ctx.fillRect(0, ARENA.top - 6, canvas.width, 6);
+
+  // Shady Call Center Wall Banners & Monitors
+  const banners = [
+    { x: 95,  text: "SCAM QUOTA: 999", sub: "GIFT CARDS ONLY" },
+    { x: 412, text: "EXTENDED WARRANTY", sub: "CALL CENTER HQ" },
+    { x: 730, text: "FAKE TECH SUPPORT", sub: "DO NOT HANG UP" }
+  ];
+  banners.forEach(b => {
+    ctx.fillStyle = '#09110c';
+    ctx.strokeStyle = '#365943';
+    ctx.lineWidth = 3;
+    ctx.fillRect(b.x, 42, 200, 92);
+    ctx.strokeRect(b.x, 42, 200, 92);
+
+    ctx.fillStyle = '#ef4444';
+    ctx.font = 'bold 16px Rajdhani, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(b.text, b.x + 100, 76);
+
+    ctx.fillStyle = '#4ade80';
+    ctx.font = '13px "Press Start 2P", monospace';
+    ctx.fillText(b.sub, b.x + 100, 108);
+  });
+
+  // Office Carpet Floor
+  ctx.fillStyle = '#161e1a';
+  ctx.fillRect(0, ARENA.top, canvas.width, canvas.height - ARENA.top);
+
+  // Carpet grid tiles
+  ctx.strokeStyle = 'rgba(74, 222, 128, 0.06)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < canvas.width; x += 64) {
+    ctx.beginPath();
+    ctx.moveTo(x, ARENA.top);
+    ctx.lineTo(x, canvas.height);
+    ctx.stroke();
+  }
+  for (let y = ARENA.top; y < canvas.height; y += 48) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(canvas.width, y);
+    ctx.stroke();
+  }
+}
+
+function drawDesk(d) {
+  ctx.save();
+  ctx.translate(d.x, d.y);
+  if (d.intact) {
+    // Cubicle desk
+    ctx.fillStyle = '#334155';
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 2;
+    ctx.fillRect(-d.w / 2, -d.h / 2, d.w, d.h);
+    ctx.strokeRect(-d.w / 2, -d.h / 2, d.w, d.h);
+
+    // Scam Monitor
+    ctx.fillStyle = '#020617';
+    ctx.fillRect(-28, -32, 34, 22);
+    ctx.fillStyle = '#22c55e';
+    ctx.fillRect(-25, -29, 28, 16);
+
+    // Landline Scam Phone
+    ctx.fillStyle = '#dc2626';
+    ctx.fillRect(14, -22, 18, 12);
+    if (d.phoneRinging) {
+      const ring = Math.sin(performance.now() * 0.03) * 3;
+      ctx.fillStyle = '#facc15';
+      ctx.font = 'bold 12px Rajdhani';
+      ctx.textAlign = 'center';
+      ctx.fillText('RING!', 23 + ring, -28);
+    }
+  } else {
+    // Smashed wreckage
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(-35, 2, 28, 8);
+    ctx.fillRect(8, 5, 30, 7);
+    ctx.strokeStyle = '#ef4444';
+    ctx.beginPath();
+    ctx.moveTo(-10, 4); ctx.lineTo(5, -6);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawScammer(en) {
+  ctx.save();
+  ctx.translate(en.x, en.y);
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.45)';
+  ctx.beginPath();
+  ctx.ellipse(0, 32, 20, 7, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.scale(en.facing, 1);
+  const bob = Math.sin(en.animTime * 11) * 2.5;
+  ctx.translate(0, bob);
+
+  if (en.hurtTimer > 0) {
+    ctx.filter = 'brightness(2.2)';
+  }
+
+  // Legs
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(-9, 14, 6, 17);
+  ctx.fillRect(3, 14, 6, 17);
+
+  // Cheap Suit / Shirt
+  ctx.fillStyle = en.color;
+  ctx.strokeStyle = '#090d0a';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(-13, -4, 26, 21, 4);
+  ctx.fill();
+  ctx.stroke();
+
+  // Crooked Tie
+  ctx.fillStyle = en.tie;
+  ctx.beginPath();
+  ctx.moveTo(0, -3);
+  ctx.lineTo(3, 10);
+  ctx.lineTo(0, 14);
+  ctx.lineTo(-3, 10);
+  ctx.closePath();
+  ctx.fill();
+
+  // Head
+  ctx.fillStyle = '#eab68a';
+  ctx.beginPath();
+  ctx.arc(0, -15, 11, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  // Shady Sunglasses + Call Center Headset
+  ctx.fillStyle = '#090d0a';
+  ctx.fillRect(-8, -18, 16, 4.5);
+  // Headset mic
+  ctx.strokeStyle = '#94a3b8';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(0, -16, 12.5, Math.PI * 0.9, Math.PI * 1.9);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(-10, -14);
+  ctx.lineTo(4, -9);
+  ctx.stroke();
+
+  ctx.restore();
+
+  // HP Bar above scammer
+  const barW = en.type === 'kingpin' ? 56 : 38;
+  const pct = Math.max(0, en.hp / en.maxHp);
+  ctx.fillStyle = '#090d0a';
+  ctx.fillRect(en.x - barW / 2, en.y - 38, barW, 5);
+  ctx.fillStyle = en.type === 'kingpin' ? '#a855f7' : '#ef4444';
+  ctx.fillRect(en.x - barW / 2, en.y - 38, barW * pct, 5);
+}
+
+function drawHUD() {
+  if (!player) return;
+
+  // Top-left Hero Portrait & Health/Ult Bars
+  ctx.fillStyle = 'rgba(9, 17, 12, 0.86)';
+  ctx.strokeStyle = '#2e523b';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(16, 12, 330, 74, 10);
+  ctx.fill();
+  ctx.stroke();
+
+  drawHeroCharacter(ctx, player.hero.id, 52, 56, 0.95, 1, 0, false, true);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 20px Bangers, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(player.hero.name, 90, 32);
+
+  // HP Bar
+  const hpPct = Math.max(0, player.hp / player.maxHp);
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(90, 39, 238, 14);
+  ctx.fillStyle = hpPct > 0.35 ? '#22c55e' : '#ef4444';
+  ctx.fillRect(90, 39, 238 * hpPct, 14);
+  ctx.strokeStyle = '#090d0a';
+  ctx.strokeRect(90, 39, 238, 14);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 11px Rajdhani, sans-serif';
+  ctx.fillText(`HP ${Math.ceil(player.hp)} / ${player.maxHp}`, 96, 50);
+
+  // Ultimate Meter
+  const ultPct = player.ultCharge / 100;
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(90, 58, 238, 14);
+  ctx.fillStyle = ultPct >= 1 ? '#facc15' : '#38bdf8';
+  ctx.fillRect(90, 58, 238 * ultPct, 14);
+  ctx.strokeRect(90, 58, 238, 14);
+
+  ctx.fillStyle = ultPct >= 1 ? '#090d0a' : '#ffffff';
+  ctx.fillText(ultPct >= 1 ? '★ ULTIMATE READY! [PRESS K / SHIFT]' : `ULTIMATE ${Math.floor(player.ultCharge)}%`, 96, 69);
+
+  // Top-Right Score & Wave Counter
+  ctx.fillStyle = 'rgba(9, 17, 12, 0.86)';
+  ctx.strokeStyle = '#2e523b';
+  ctx.beginPath();
+  ctx.roundRect(canvas.width - 290, 12, 274, 74, 10);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#4ade80';
+  ctx.font = '14px "Press Start 2P", monospace';
+  ctx.fillText(`$${score.toLocaleString()}`, canvas.width - 30, 38);
+
+  ctx.fillStyle = '#cbd5e1';
+  ctx.font = 'bold 15px Rajdhani, sans-serif';
+  ctx.fillText(`FLOOR ${wave}  •  BUSTED: ${kills}  •  BEST: $${bestScore.toLocaleString()}`, canvas.width - 30, 66);
+
+  // Wave Announcement Banner
+  if (waveBannerTimer > 0) {
+    ctx.save();
+    ctx.fillStyle = 'rgba(5, 15, 9, 0.8)';
+    ctx.fillRect(0, 230, canvas.width, 76);
+    ctx.fillStyle = '#4ade80';
+    ctx.font = '44px Bangers, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`FLOOR ${wave}: INCOMING SCAM WAVE!`, canvas.width / 2, 282);
+    ctx.restore();
+  }
+}
+
+function render() {
+  ctx.save();
+  if (screenShake > 0) {
+    const sx = (Math.random() - 0.5) * screenShake;
+    const sy = (Math.random() - 0.5) * screenShake;
+    ctx.translate(sx, sy);
+  }
+
+  drawCallCenterBackground();
+
+  if (gameState === 'PLAYING' || gameState === 'GAMEOVER') {
+    // Depth-sort all entities by Y coordinate for true beat-'em-up perspective
+    const renderList = [];
+    desks.forEach(d => renderList.push({ y: d.y, draw: () => drawDesk(d) }));
+    pickups.forEach(pk => renderList.push({
+      y: pk.y,
+      draw: () => {
+        const yOff = Math.sin(pk.bob) * 4;
+        ctx.fillStyle = pk.kind === 'coffee' ? '#38bdf8' : '#facc15';
+        ctx.strokeStyle = '#090d0a';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(pk.x - 12, pk.y - 12 + yOff, 24, 18, 4);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#090d0a';
+        ctx.font = 'bold 10px Rajdhani';
+        ctx.textAlign = 'center';
+        ctx.fillText(pk.kind === 'coffee' ? 'HP' : '$$$', pk.x, pk.y + yOff);
+      }
+    }));
+    enemies.forEach(en => renderList.push({ y: en.y, draw: () => drawScammer(en) }));
+    allies.forEach(a => renderList.push({
+      y: a.y,
+      draw: () => drawHeroCharacter(ctx, a.hero.id, a.x, a.y, 1.05, a.facing, performance.now() * 0.005, a.attackTimer > 0.3, false)
+    }));
+    if (player) {
+      renderList.push({
+        y: player.y,
+        draw: () => {
+          if (player.invulnTimer > 0 && Math.floor(player.invulnTimer * 20) % 2 === 0) return;
+          drawHeroCharacter(
+            ctx,
+            player.hero.id,
+            player.x,
+            player.y,
+            1.15,
+            player.facing,
+            player.animTime,
+            player.attackTimer > 0,
+            false
+          );
+        }
+      });
+    }
+
+    renderList.sort((a, b) => a.y - b.y);
+    renderList.forEach(item => item.draw());
+
+    // Ultimate Projectiles
+    projectiles.forEach(p => {
+      ctx.save();
+      ctx.translate(p.x, p.y - 10);
+      ctx.fillStyle = p.color;
+      ctx.shadowColor = p.color;
+      ctx.shadowBlur = 22;
+      ctx.beginPath();
+      ctx.arc(0, 0, p.radius * 0.65, -Math.PI * 0.45, Math.PI * 0.45);
+      ctx.lineWidth = 14;
+      ctx.strokeStyle = p.color;
+      ctx.stroke();
+      ctx.restore();
+    });
+
+    // Particles
+    particles.forEach(pt => {
+      ctx.fillStyle = pt.color;
+      ctx.fillRect(pt.x - pt.size / 2, pt.y - pt.size / 2, pt.size, pt.size);
+    });
+
+    // Floating Comic Callouts
+    floatingTexts.forEach(ft => {
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, ft.life * 1.4);
+      ctx.font = `bold ${ft.size}px Bangers, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.strokeStyle = '#090d0a';
+      ctx.lineWidth = 4;
+      ctx.strokeText(ft.text, ft.x, ft.y);
+      ctx.fillStyle = ft.color;
+      ctx.fillText(ft.text, ft.x, ft.y);
+      ctx.restore();
+    });
+
+    drawHUD();
+  }
+
+  ctx.restore();
+}
+
+let lastTime = performance.now();
+function loop(now) {
+  const dt = Math.min(0.05, (now - lastTime) / 1000);
+  lastTime = now;
+  update(dt);
+  render();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+// Button Listeners
+document.getElementById('start-btn').addEventListener('click', startGame);
+document.getElementById('replay-btn').addEventListener('click', startGame);
+document.getElementById('change-hero-btn').addEventListener('click', () => {
+  sfx.select();
+  document.getElementById('gameover-screen').classList.add('hidden');
+  document.getElementById('select-screen').classList.remove('hidden');
+  gameState = 'SELECT';
+});
+</script>
+</body>
+</html>
